@@ -7,7 +7,7 @@ class TipoMascota(models.Model):
 
     def __str__(self):
         return self.nombre
-    
+
 class Mascota(models.Model):
     nombre = models.CharField(max_length=128,null=True,blank=True)
     edad = models.IntegerField()
@@ -18,7 +18,7 @@ class Mascota(models.Model):
 
     def __str__(self):
         return f"{self.nombre} - {self.descripcion}"
-    
+
 class Persona(models.Model):
     nombre = models.CharField(max_length=128,null=True,blank=True)
     email = models.CharField(max_length=128,null=True,blank=True)
@@ -26,7 +26,7 @@ class Persona(models.Model):
 
     def __str__(self):
         return f"{self.nombre} - {self.telefono}"
-    
+
 class Adopcion(models.Model):
     mascota = models.OneToOneField(Mascota, on_delete=models.CASCADE)
     persona = models.ForeignKey(Persona, on_delete=models.CASCADE)
@@ -42,3 +42,18 @@ class Adopcion(models.Model):
     y relaciones indicados en el examen
     =========================================================
 """
+
+class PostMascota(models.Model):
+    mascota = models.ForeignKey(Mascota, on_delete=models.CASCADE)
+    titulo = models.CharField(max_length=200)
+    descripcion = models.TextField()
+    fecha = models.DateField()
+    foto = models.ImageField(upload_to='mascotas/')
+
+    def __str__(self):
+        return f"{self.titulo} - {self.mascota.nombre}"
+
+    class Meta:
+        ordering = ['-fecha']
+        verbose_name = 'Post de Mascota'
+        verbose_name_plural = 'Posts de Mascotas'
