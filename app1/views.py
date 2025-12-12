@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login,logout, authenticate
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .forms import TipoMascotaForm
+from .forms import TipoMascotaForm, PostMascotaForm
 
 # Create your views here.
 def ingreso(request):
@@ -34,7 +34,7 @@ def registro(request):
         if not username or not password:
             messages.error(request,"El usuario y la contraseña son obligatorios")
             return HttpResponseRedirect(reverse('app1:registro'))
-        
+
         if User.objects.filter(username=username).exists():
             messages.error(request,"Este nombre de usuario ya existe")
             return HttpResponseRedirect(reverse('app1:registro'))
@@ -73,7 +73,7 @@ def crearTipo(request):
         'form':form
     })
 
-"""   
+"""
 def crearTipo(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre')
@@ -134,7 +134,7 @@ def detalleMascota(request,idMascota):
             adopcion = Adopcion.objects.get(mascota=mascota)
         except Adopcion.DoesNotExist:
             adopcion = None
-    
+
     if request.method == 'POST' and mascota.estado == 'Disponible':
         nombre = request.POST.get('nombre')
         email = request.POST.get('email')
@@ -179,15 +179,48 @@ def cerrarSesion(request):
 
 
 """
-    =========================================================
+"""    =========================================================
     SECCIÓN: CREAR LA FUNCION POSTS_MASCOTA
     ---------------------------------------------------------
     TODO: Crear la funcion que permita gestionar los metodos
     POST y GET. El metodo GET debe devolver el template con
     las variables de contexto y el metodo POST debe guardar
     el nuevo objeto creado. El redireccionamieto luego de
-    gestionar el metodo POST debe ir hacia la misma ruta 
-    posts_mascota, tener en cuenta que se debe enviar el 
+    gestionar el metodo POST debe ir hacia la misma ruta
+    posts_mascota, tener en cuenta que se debe enviar el
     argumento del id adecuadamente.
     =========================================================
 """
+
+@login_required(login_url='/')
+def posts_mascota(request, mascota_id):
+    # Obtener la mascota usando mascota_id desde la URL
+    mascota = Mascota.objects.get(id=mascota_id)
+    tipos = TipoMascota.objects.all()
+
+    # Obtener todos los posts relacionados a esta mascota
+    posts = PostMascota.objects.filter(mascota=mascota)
+
+    # Procesar el formulario según el método HTTP
+    if request.method == 'POST':
+        # Cargar y procesar el formulario PostMascotaForm
+        form = PostMascotaForm(request.POST, request.FILES)
+        if form.is_valid():
+            # Guardar el post con relación directa a la mascota
+            post = form.save(commit=False)
+            post.mascota = mascota
+            post.save()
+            messages.success(request, "Post registrado correctamente")
+            # Redireccionar a la misma vista con el id de la mascota
+            return HttpResponseRedirect(reverse('app1:posts_mascota', args=[mascota_id]))
+    else:
+        # GET: Mostrar formulario vacío
+        form = PostMascotaForm()
+
+    # Renderizar plantilla posts_mascota.html con el contexto requerido
+    return render(request, 'posts_mascota.html', {
+        'tipos': tipos,
+        'mascota': mascota,
+        'form': form,
+        'posts': posts
+    })

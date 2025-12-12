@@ -22,6 +22,6 @@ urlpatterns = [
     en cuenta los arguementos requeridos.
     =========================================================
     """
-
+    path('posts_mascota/<int:mascota_id>', views.posts_mascota, name='posts_mascota'),
 
 ]
